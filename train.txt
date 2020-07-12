@@ -1,0 +1,102 @@
+I [V1] the wall with the paint.
+You [V2] the jacket with the patterns.
+He [V3] the costume with the bows.
+She [V4] the bread with the oil.
+They [V5] the truck with the bricks.
+James [V6] the plane with the passengers.
+John [V7] the person with the perfume.
+Mary [V8] the field with the animals.
+Patricia [V9] the crowd with the water.
+Jennifer [V10] the shelf with the books.
+I [V11] the paint with the wall.
+You [V12] the patterns with the jacket.
+He [V13] the bows with the costume.
+She [V14] the oil with the bread.
+They [V15] the bricks with the truck.
+James [V16] the passengers with the plane.
+John [V17] the perfume with the person.
+Mary [V18] the animals with the field.
+Patricia [V19] the water with the crowd.
+Jennifer [V20] the books with the shelf.
+[N21] [V21].
+[N21] [V22].
+[N22] [V21].
+[N22] [V23].
+[N23] [V22].
+[N23] [V23].
+[N24] [V24].
+[N24] [V25].
+[N25] [V24].
+[N25] [V26].
+[N26] [V25].
+[N26] [V26].
+I [V27] the school the child.
+You [V28] the rat the poison.
+He [V29] the customer the fish.
+She [V30] the citizen the money.
+They [V31] the girl the boy.
+James [V32] the cat the milk.
+John [V33] the student the cup.
+Mary [V34] the worker the railing.
+Patricia [V35] the employee the vase.
+Jennifer [V36] the man the job.
+I [V37] the child.
+You [V38] the poison.
+He [V39] the fish.
+She [V40] the money.
+They [V41] the boy.
+James [V42] the milk.
+John [V43] the cup.
+Mary [V44] the railing.
+Patricia [V45] the vase.
+Jennifer [V46] the job.
+I [V47].
+You [V48].
+He [V49].
+She [V50].
+They [V51].
+James [V52].
+John [V53].
+Mary [V54].
+Patricia [V55].
+Jennifer [V56].
+The [V57] are coming.
+The [V58] are in the house.
+The [V59] are with the apples.
+The [V60] are running.
+The [V61] are on the table.
+The [V62] are playing the game.
+The [V63] are eating some food.
+The [V64] are sleeping.
+The [V65] are fighting.
+The [V66] are walking.
+The [V67] is coming.
+The [V68] is in the house.
+The [V69] is with the apples.
+The [V70] is running.
+The [V71] is on the table.
+The [V72] is playing the game.
+The [V73] is eating some food.
+The [V74] is sleeping.
+The [V75] is fighting.
+The [V76] is walking.
+I [V77] the paint onto the wall.
+You [V78] the patterns onto the jacket.
+He [V79] the bows onto the costume.
+She [V80] the oil onto the bread.
+They [V81] the bricks onto the truck.
+James [V82] the passengers onto the plane.
+John [V83] the perfume onto the person.
+Mary [V84] the animals onto the field.
+Patricia [V85] the water onto the crowd.
+Jennifer [V86] the books onto the shelf.
+I [V87] the paint and the wall.
+You [V88] the patterns and the jacket.
+He [V89] the bows and the costume.
+She [V90] the oil and the bread.
+They [V91] the bricks and the truck.
+James [V92] the passengers and the plane.
+John [V93] the perfume and the person.
+Mary [V94] the animals and the field.
+Patricia [V95] the water and the crowd.
+Jennifer [V96] the books and the shelf.
