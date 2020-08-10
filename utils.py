@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import random
 import scipy
 import torch
+import csv
 import pickle
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class BertExperiments:
-    def __init__(self, experiments):
+    def __init__(self, experiments, save_name):
         self.experiments = experiments
+        self.save_name = save_name
 
     def experiment(self, seeds, epoch_num, learning_rate):
         for seed in seeds:
@@ -39,22 +41,78 @@ class BertExperiments:
             for experiment in self.experiments:
                 experiment.run(model)
 
-        pickle.dump(self.experiments, open('results.pkl', 'wb'))
+        pickle.dump(self.experiments, open(self.save_name + '.pkl', 'wb'))
 
     def significance_test_on_results(self):
-        self.experiments = pickle.load(open('results.pkl', 'rb'))
+        self.experiments = pickle.load(open(self.save_name + '.pkl', 'rb'))
         for experiment in self.experiments:
             p_value = scipy.stats.wilcoxon(experiment.in_class_results,
                 experiment.out_class_results)[1]
             in_class_sum = sum(experiment.in_class_results)
             out_class_sum = sum(experiment.out_class_results)
             print(experiment.info)
+            if isinstance(experiment, SimilarityExperiment):
+                if experiment.metric == 'linear_classifier':
+                    print(experiment.classifier_accuracy)
             print(p_value)
             print(in_class_sum)
             print(out_class_sum)
 
+    def save_results_as_csv(self, seeds):
+        lines = open('word_frequencies.txt', 'r').readlines()
+        word_frequencies = {}
+        for line in lines:
+            word = line.split()[1]
+            frequency = float(line.split()[2])
+            word_frequencies[word] = frequency
+        self.experiments = pickle.load(open(self.save_name + '.pkl', 'rb'))
+        fieldnames = ['experiment_info', 'novel_verb', 'linear_classifier_train_accuracy', 'mean_in_class_frequency', 'mean_out_class_frequency', 'mean_in_class_out_class_frequency_ratio']\
+            + ['linear_classification_on_seed_' + str(seed) for seed in range(seeds)]\
+            + ['in_class_cosine_similarity_on_seed_' + str(seed) for seed in range(seeds)]\
+            + ['out_class_cosine_similarity_on_seed_' + str(seed) for seed in range(seeds)]\
+            + ['in_class_prediction_probability_on_seed_' + str(seed) for seed in range(seeds)]\
+            + ['out_class_prediction_probability_on_seed_' + str(seed) for seed in range(seeds)]
+        writer = csv.DictWriter(open(self.save_name + '.csv', 'w', newline=''), fieldnames=fieldnames)
+        writer.writeheader()
+        for experiment in self.experiments:
+            csv_dict = {}
+            csv_dict['experiment_info'] = experiment.info
+            csv_dict['novel_verb'] = experiment.novel_verb
+            if isinstance(experiment, SimilarityExperiment):
+                mean_in_class_frequency = 0
+                in_class_len = 0
+                for word in experiment.in_class:
+                    if word in word_frequencies:
+                        mean_in_class_frequency += word_frequencies[word]
+                    else:
+                        print('zero for frequency calculations:', word)
+                csv_dict['mean_in_class_frequency'] = mean_in_class_frequency/len(experiment.in_class)
+                mean_out_class_frequency = 0
+                out_class_len = 0
+                for word in experiment.out_class:
+                    if word in word_frequencies:
+                        mean_out_class_frequency += word_frequencies[word]
+                    else:
+                        print('zero for frequency calculations:', word)
+                csv_dict['mean_out_class_frequency'] = mean_out_class_frequency/len(experiment.out_class)
+                csv_dict['mean_in_class_out_class_frequency_ratio'] = csv_dict['mean_in_class_frequency']/csv_dict['mean_out_class_frequency']
+                if experiment.metric == 'linear_classifier':
+                    csv_dict['linear_classifier_train_accuracy'] = experiment.classifier_accuracy
+                    for seed in range(seeds):
+                        csv_dict['linear_classification_on_seed_' + str(seed)] = experiment.in_class_results[seed]
+                if experiment.metric == 'cosine_similarity':
+                    for seed in range(seeds):
+                        csv_dict['in_class_cosine_similarity_on_seed_' + str(seed)] = experiment.in_class_results[seed]
+                        csv_dict['out_class_cosine_similarity_on_seed_' + str(seed)] = experiment.out_class_results[seed]
+            if isinstance(experiment, PredictionExperiment):
+                for seed in range(seeds):
+                    csv_dict['in_class_prediction_probability_on_seed_' + str(seed)] = experiment.in_class_results[seed]
+                    csv_dict['out_class_prediction_probability_on_seed_' + str(seed)] = experiment.out_class_results[seed]
+            writer.writerow(csv_dict)
+
+
     def plot_results(self):
-        self.experiments = pickle.load(open('results.pkl', 'rb'))
+        self.experiments = pickle.load(open(self.save_name + '.pkl', 'rb'))
         similarity_experiments = []
         prediction_experiments = []
         for experiment in self.experiments:
@@ -64,57 +122,57 @@ class BertExperiments:
                 prediction_experiments.append(experiment)
         plot_number = 0
         for experiments in (similarity_experiments, prediction_experiments):
-            x = []
-            y = []
-            colors = []
-            index = 0
-            max_x = max(set().union(*[experiment.in_class_results
-                + experiment.out_class_results for experiment in experiments]))
-            for experiment in experiments:
-                y += [index+0.05]*len(experiment.in_class_results) + [
-                      index-0.05]*len(experiment.out_class_results)
-                x += experiment.in_class_results + experiment.out_class_results
-                colors += ['skyblue']*len(experiment.in_class_results) + [
-                    'salmon']*len(experiment.out_class_results)
-                p_value = round(scipy.stats.wilcoxon(
-                    experiment.in_class_results,
-                    experiment.out_class_results)[1], 2)
-                in_class_mean = sum(experiment.in_class_results)/len(
-                    experiment.in_class_results)
-                out_class_mean = sum(experiment.out_class_results)/len(
-                    experiment.out_class_results)
-                color = None
-                if p_value < 0.05:
-                    if in_class_mean > out_class_mean:
-                        color = 'b'
-                    else:
-                        color = 'r'
-                annotation_in_class_mean = plt.annotate(
-                    '|', (in_class_mean, index), horizontalalignment='center')
-                annotation_out_class_mean = plt.annotate(
-                    '|', (out_class_mean, index), horizontalalignment='center')
-                annotation_info = plt.annotate(experiment.novel_verb
-                    + ' (p=' + str(p_value) + ')', (max_x, index+0.3),
-                    horizontalalignment='right')
-                annotation_in_class_mean.set_fontsize(7)
-                annotation_in_class_mean.set_color('b')
-                annotation_out_class_mean.set_fontsize(7)
-                annotation_out_class_mean.set_color('r')
-                annotation_info.set_fontsize(4)
-                if color:
-                    annotation_info.set_color(color)
-                index += 1
-            plt.scatter(x, y, c=colors, alpha=0.5, s=[0.5]*len(x))
-            plt.yticks([])
-            axes = plt.gca()
-            axes.set_ylim([-1,30])
-            left, right = plt.xlim()
-            print(abs(left-right))
-            plt.axes().set_aspect(0.05*abs(left-right))
-            plt.savefig('results' + str(plot_number) + '.png',
-                        bbox_inches='tight', dpi=1000)
-            plt.clf()
-            plot_number += 1
+            if len(experiments) > 0:
+                x = []
+                y = []
+                colors = []
+                index = 0
+                max_x = max(set().union(*[experiment.in_class_results
+                    + experiment.out_class_results for experiment in experiments]))
+                for experiment in experiments:
+                    y += [index+0.05]*len(experiment.in_class_results) + [
+                          index-0.05]*len(experiment.out_class_results)
+                    x += experiment.in_class_results + experiment.out_class_results
+                    colors += ['skyblue']*len(experiment.in_class_results) + [
+                        'salmon']*len(experiment.out_class_results)
+                    p_value = round(scipy.stats.wilcoxon(
+                        experiment.in_class_results,
+                        experiment.out_class_results)[1], 2)
+                    in_class_mean = sum(experiment.in_class_results)/len(
+                        experiment.in_class_results)
+                    out_class_mean = sum(experiment.out_class_results)/len(
+                        experiment.out_class_results)
+                    color = None
+                    if p_value < 0.05:
+                        if in_class_mean > out_class_mean:
+                            color = 'b'
+                        else:
+                            color = 'r'
+                    annotation_in_class_mean = plt.annotate(
+                        '|', (in_class_mean, index), horizontalalignment='center')
+                    annotation_out_class_mean = plt.annotate(
+                        '|', (out_class_mean, index), horizontalalignment='center')
+                    annotation_info = plt.annotate(experiment.novel_verb
+                        + ' (p=' + str(p_value) + ')', (max_x, index+0.3),
+                        horizontalalignment='right')
+                    annotation_in_class_mean.set_fontsize(7)
+                    annotation_in_class_mean.set_color('b')
+                    annotation_out_class_mean.set_fontsize(7)
+                    annotation_out_class_mean.set_color('r')
+                    annotation_info.set_fontsize(4)
+                    if color:
+                        annotation_info.set_color(color)
+                    index += 1
+                plt.scatter(x, y, c=colors, alpha=0.5, s=[0.5]*len(x))
+                plt.yticks([])
+                axes = plt.gca()
+                axes.set_ylim([-1,30])
+                left, right = plt.xlim()
+                plt.axes().set_aspect(0.05*abs(left-right))
+                plt.savefig(self.save_name + str(plot_number) + '.png',
+                            bbox_inches='tight', dpi=1000)
+                plt.clf()
+                plot_number += 1
 
 class Experiment:
     def __init__(self, info, novel_tokens, novel_verb, train_data, in_class,
@@ -136,6 +194,10 @@ class SimilarityExperiment(Experiment):
                  in_class_verbs, out_class_verbs):
         super().__init__(info, novel_tokens, novel_verb, train_data,
                          in_class_verbs, out_class_verbs)
+        self.classifier_trained = False
+        self.learning_rate = 1e-1
+        self.epochs = 20
+        self.metric = 'linear_classifier'
 
     def run(self, model):
         in_class_embeddings = []
@@ -149,14 +211,41 @@ class SimilarityExperiment(Experiment):
             if embedding.shape[1] == 1:
                 out_class_embeddings.append(embedding)
         novel_verb_embedding = model.get_embedding(self.novel_verb)
-        in_class_similarity = torch.nn.functional.cosine_similarity(
-            novel_verb_embedding.squeeze(0),
-            torch.mean(torch.cat(in_class_embeddings), dim=0), dim=1).item()
-        out_class_similarity = torch.nn.functional.cosine_similarity(
-            novel_verb_embedding.squeeze(0),
-            torch.mean(torch.cat(out_class_embeddings), dim=0), dim=1).item()
-        self.in_class_results.append(in_class_similarity)
-        self.out_class_results.append(out_class_similarity)
+        if self.metric == 'cosine_similarity':
+            in_class_similarity = torch.nn.functional.cosine_similarity(
+                novel_verb_embedding.squeeze(0),
+                torch.mean(torch.cat(in_class_embeddings), dim=0), dim=1).item()
+            out_class_similarity = torch.nn.functional.cosine_similarity(
+                novel_verb_embedding.squeeze(0),
+                torch.mean(torch.cat(out_class_embeddings), dim=0), dim=1).item()
+            self.in_class_results.append(in_class_similarity)
+            self.out_class_results.append(out_class_similarity)
+        if self.metric == 'linear_classifier':
+            if not self.classifier_trained:
+                self.classifier = torch.nn.Linear(
+                    novel_verb_embedding.shape[-1], 2).to(device)
+                criterion = torch.nn.CrossEntropyLoss()
+                optimizer = torch.optim.Adam(self.classifier.parameters(),
+                                             self.learning_rate)
+                self.classifier.train()
+                batch = torch.cat(in_class_embeddings
+                    + out_class_embeddings).squeeze(1)
+                batch_labels = torch.tensor([1]*len(in_class_embeddings)
+                    + [0]*len(out_class_embeddings)).to(device)
+                print('training classifier for:', self.info)
+                for epoch in range(self.epochs):
+                    optimizer.zero_grad()
+                    loss = criterion(self.classifier(batch), batch_labels)
+                    loss.backward(retain_graph=True)
+                    print('loss:', loss.item())
+                    optimizer.step()
+                self.classifier.eval()
+                self.classifier_trained = True
+                self.classifier_accuracy = (batch_labels.shape[0] - torch.sum(torch.abs(torch.max(self.classifier(batch), 1)[1].float() - batch_labels.float())).item())/batch_labels.shape[0]
+                print('out:', self.classifier(novel_verb_embedding))
+            result = torch.max(self.classifier(novel_verb_embedding), 2)[1].item()
+            self.in_class_results.append(result)
+            self.out_class_results.append(1-result)
 
 
 

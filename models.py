@@ -1,4 +1,4 @@
-from transformers import BertTokenizer, BertForMaskedLM
+from transformers import BertTokenizer, BertForMaskedLM, BertConfig
 import torch
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
