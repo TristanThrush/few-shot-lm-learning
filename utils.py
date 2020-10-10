@@ -26,7 +26,6 @@ class BertExperiments:
             train_data = []
             for experiment in self.experiments:
                 train_data += experiment.train_data
-
             model = BERT(novel_tokens, learning_rate)
 
             print('Training')
@@ -66,7 +65,11 @@ class BertExperiments:
             frequency = float(line.split()[2])
             word_frequencies[word] = frequency
         self.experiments = pickle.load(open(self.save_name + '.pkl', 'rb'))
-        fieldnames = ['experiment_info', 'novel_verb', 'linear_classifier_train_accuracy', 'mean_in_class_frequency', 'mean_out_class_frequency', 'mean_in_class_out_class_frequency_ratio']\
+        max_in_class_words = max([len(experiment.in_class) for experiment in self.experiments])
+        max_out_class_words = max([len(experiment.out_class) for experiment in self.experiments])
+        fieldnames = ['experiment_info', 'novel_verb', 'linear_classifier_train_accuracy']\
+            + ['in_class_word_frequency_' + str(index) for index in range(max_in_class_words)]\
+            + ['out_class_word_frequency_' + str(index) for index in range(max_out_class_words)]\
             + ['linear_classification_on_seed_' + str(seed) for seed in range(seeds)]\
             + ['in_class_cosine_similarity_on_seed_' + str(seed) for seed in range(seeds)]\
             + ['out_class_cosine_similarity_on_seed_' + str(seed) for seed in range(seeds)]\
@@ -79,27 +82,35 @@ class BertExperiments:
             csv_dict['experiment_info'] = experiment.info
             csv_dict['novel_verb'] = experiment.novel_verb
             if isinstance(experiment, SimilarityExperiment):
-                mean_in_class_frequency = 0
-                in_class_len = 0
-                for word in experiment.in_class:
+                for index in range(len(experiment.in_class)):
+                    word = experiment.in_class[index]
                     if word in word_frequencies:
-                        mean_in_class_frequency += word_frequencies[word]
+                        csv_dict['in_class_word_frequency_' + str(index)] = word_frequencies[word]
                     else:
-                        print('zero for frequency calculations:', word)
-                csv_dict['mean_in_class_frequency'] = mean_in_class_frequency/len(experiment.in_class)
-                mean_out_class_frequency = 0
-                out_class_len = 0
-                for word in experiment.out_class:
+                        csv_dict['in_class_word_frequency_' + str(index)] = 0
+                for index in range(len(experiment.out_class)):
+                    word = experiment.out_class[index]
                     if word in word_frequencies:
-                        mean_out_class_frequency += word_frequencies[word]
+                        csv_dict['out_class_word_frequency_' + str(index)] = word_frequencies[word]
                     else:
-                        print('zero for frequency calculations:', word)
-                csv_dict['mean_out_class_frequency'] = mean_out_class_frequency/len(experiment.out_class)
-                csv_dict['mean_in_class_out_class_frequency_ratio'] = csv_dict['mean_in_class_frequency']/csv_dict['mean_out_class_frequency']
+                        csv_dict['out_class_word_frequency_' + str(index)] = 0
                 if experiment.metric == 'linear_classifier':
                     csv_dict['linear_classifier_train_accuracy'] = experiment.classifier_accuracy
                     for seed in range(seeds):
                         csv_dict['linear_classification_on_seed_' + str(seed)] = experiment.in_class_results[seed]
+
+                    #Write weights of linear classifier to their own csv.
+                    classifier_fieldnames = ['out_dimension', 'bias'] + ['weight_' + str(in_dim) for in_dim in range(experiment.classifier.weight[0].shape[0])]
+                    weights_writer = csv.DictWriter(open(self.save_name + '_' + experiment.novel_verb + '_classifier_weights.csv', 'w', newline=''), fieldnames=classifier_fieldnames)
+                    weights_writer.writeheader()
+                    for out_dim in [0,1]:
+                        classifier_csv_dict = {}
+                        classifier_csv_dict['out_dimension'] = out_dim
+                        classifier_csv_dict['bias'] = experiment.classifier.bias[out_dim].item()
+                        for index in range(experiment.classifier.weight[out_dim].shape[0]):
+                            classifier_csv_dict['weight_' + str(index)] = experiment.classifier.weight[out_dim][index].item()
+                        weights_writer.writerow(classifier_csv_dict)
+
                 if experiment.metric == 'cosine_similarity':
                     for seed in range(seeds):
                         csv_dict['in_class_cosine_similarity_on_seed_' + str(seed)] = experiment.in_class_results[seed]
@@ -166,7 +177,7 @@ class BertExperiments:
                 plt.scatter(x, y, c=colors, alpha=0.5, s=[0.5]*len(x))
                 plt.yticks([])
                 axes = plt.gca()
-                axes.set_ylim([-1,30])
+                axes.set_ylim([-1,300])
                 left, right = plt.xlim()
                 plt.axes().set_aspect(0.05*abs(left-right))
                 plt.savefig(self.save_name + str(plot_number) + '.png',
@@ -248,7 +259,6 @@ class SimilarityExperiment(Experiment):
             self.out_class_results.append(1-result)
 
 
-
 class PredictionExperiment(Experiment):
     def __init__(self, info, novel_tokens, novel_verb, train_data,
                  in_class_sentences, out_class_sentences):
@@ -270,7 +280,6 @@ class PredictionExperiment(Experiment):
             out_class_predictions)
         self.in_class_results.append(mean_in_class_prediction)
         self.out_class_results.append(mean_out_class_prediction)
-
 
 
 class VerbLearningExperimentParser(HTMLParser):
@@ -336,3 +345,67 @@ class VerbLearningExperimentParser(HTMLParser):
                                 + self.current_subsection)
             else:
                 raise ValueError('unexpected tag: ' + self.current_subsection)
+
+class LevinPredictionExperimentParser:
+    def __init__(self):
+        self.experiments = []
+
+    '''
+    def feed(self, string):
+        lines = string.split('\n')
+        lines.remove('')
+        n = 2
+        alternations = [lines[i * n:(i + 1) * n] for i in range((len(lines) + n - 1) // n )]
+        novel_verb_counter = 1
+        for alternation in alternations:
+            novel_verb_1 = '[V' + str(novel_verb_counter) + '.1]'
+            novel_verb_2 = '[V' + str(novel_verb_counter) + '.2]'
+            train_data_1 = [alternation[0].replace('[V]', novel_verb_1)]
+            train_data_2 = [alternation[1].replace('[V]', novel_verb_2)]
+            in_class_test_data_1 = [alternation[1].replace('[V]', novel_verb_1)]
+            in_class_test_data_2 = [alternation[0].replace('[V]', novel_verb_2)]
+            out_class_test_data_1 = []
+            out_class_test_data_2 = []
+            for index in range(len(lines)):
+                if [alternation[0], lines[index]] not in alternations and [lines[index], alternation[0]] not in alternations and alternation[0] != lines[index]:
+                    out_class_test_data_1.append(lines[index].replace('[V]', novel_verb_1))
+                if [alternation[1], lines[index]] not in alternations and [lines[index], alternation[1]] not in alternations and alternation[1] != lines[index]:
+                    out_class_test_data_2.append(lines[index].replace('[V]', novel_verb_2))
+            self.experiments.append(PredictionExperiment('', [novel_verb_1], novel_verb_1, train_data_1, in_class_test_data_1, out_class_test_data_1))
+            self.experiments.append(PredictionExperiment('', [novel_verb_2], novel_verb_2, train_data_2, in_class_test_data_2, out_class_test_data_2))
+            novel_verb_counter += 1
+    '''
+
+    def feed(self, experiment_dict):
+        all_alternations = []
+        for value in experiment_dict.values():
+            all_alternations += value
+        novel_verb_counter = 1
+        for info, alternations in experiment_dict.items():
+            index = 0
+            for frame1, frame2 in alternations:
+                novel_verb_1 = '[V' + str(novel_verb_counter) + '.1.' + str(index) + ']'
+                novel_verb_2 = '[V' + str(novel_verb_counter) + '.2.' + str(index) + ']'
+                train_data_1 = [frame1.replace('[V]', novel_verb_1)]
+                train_data_2 = [frame2.replace('[V]', novel_verb_2)]
+                in_class_test_data_1 = [frame2.replace('[V]', novel_verb_1)]
+                in_class_test_data_2 = [frame1.replace('[V]', novel_verb_2)]
+                out_class_test_data_1 = []
+                out_class_test_data_2 = []
+                for frame1sub, frame2sub in all_alternations:
+                    if frame1sub != frame1:
+                        if (frame1, frame1sub) not in all_alternations and (frame1sub, frame1) not in all_alternations:
+                            out_class_test_data_1.append(frame1sub.replace('[V]', novel_verb_1))
+                    if frame2sub != frame1:
+                        if (frame1, frame2sub) not in all_alternations and (frame2sub, frame1) not in all_alternations:
+                            out_class_test_data_1.append(frame2sub.replace('[V]', novel_verb_1))
+                    if frame1sub != frame2:
+                        if (frame2, frame1sub) not in all_alternations and (frame1sub, frame2) not in all_alternations:
+                            out_class_test_data_2.append(frame1sub.replace('[V]', novel_verb_2))
+                    if frame2sub != frame2:
+                        if (frame2, frame2sub) not in all_alternations and (frame2sub, frame2) not in all_alternations:
+                            out_class_test_data_2.append(frame2sub.replace('[V]', novel_verb_2))
+                index += 1
+                self.experiments.append(PredictionExperiment(info, [novel_verb_1], novel_verb_1, train_data_1, in_class_test_data_1, out_class_test_data_1))
+                self.experiments.append(PredictionExperiment(info, [novel_verb_2], novel_verb_2, train_data_2, in_class_test_data_2, out_class_test_data_2))
+            novel_verb_counter += 1

@@ -1,11 +1,11 @@
 from utils import VerbLearningExperimentParser, BertExperiments,\
-    SimilarityExperiment
+    SimilarityExperiment, LevinPredictionExperimentParser
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=10,
                     help='number of training epochs')
-parser.add_argument('--seeds', type=int, default=200,
+parser.add_argument('--seeds', type=int, default=20,
                     help='number of random seeds')
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
@@ -18,8 +18,21 @@ parser.add_argument('--data', type=str,
                     help='experiments file')
 args = parser.parse_args()
 
-experiment_parser = VerbLearningExperimentParser()
-experiment_parser.feed(open(args.data).read())
+#experiment_parser = VerbLearningExperimentParser()
+#unparsed = open(args.data).read()
+experiment_parser = LevinPredictionExperimentParser()
+unparsed = eval(open(args.data).read())
+experiment_parser.feed(unparsed)
+'''
+for experiment in experiment_parser.experiments:
+    print(experiment.info.split('\n')[0])
+    print(experiment.train_data)
+    #print(experiment.in_class)
+    #print(len(experiment.out_class))
+    print()
+crash
+'''
+
 for experiment in experiment_parser.experiments:
     if isinstance(experiment, SimilarityExperiment):
         experiment.metric = args.similarity_experiments_metric
