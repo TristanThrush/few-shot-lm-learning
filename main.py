@@ -3,6 +3,7 @@ from utils import VerbLearningExperimentParser, BertExperiments,\
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--use_levin_prediction_parser', type=bool)
 parser.add_argument('--epochs', type=int, default=10,
                     help='number of training epochs')
 parser.add_argument('--seeds', type=int, default=20,
@@ -18,20 +19,15 @@ parser.add_argument('--data', type=str,
                     help='experiments file')
 args = parser.parse_args()
 
-#experiment_parser = VerbLearningExperimentParser()
-#unparsed = open(args.data).read()
-experiment_parser = LevinPredictionExperimentParser()
-unparsed = eval(open(args.data).read())
+if args.use_levin_prediction_parser:
+    experiment_parser = LevinPredictionExperimentParser()
+    unparsed = eval(open(args.data).read())
+else:
+    experiment_parser = VerbLearningExperimentParser()
+    unparsed = open(args.data).read()
+
 experiment_parser.feed(unparsed)
-'''
-for experiment in experiment_parser.experiments:
-    print(experiment.info.split('\n')[0])
-    print(experiment.train_data)
-    #print(experiment.in_class)
-    #print(len(experiment.out_class))
-    print()
-crash
-'''
+
 
 for experiment in experiment_parser.experiments:
     if isinstance(experiment, SimilarityExperiment):

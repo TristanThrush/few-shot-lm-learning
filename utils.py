@@ -99,7 +99,7 @@ class BertExperiments:
                     for seed in range(seeds):
                         csv_dict['linear_classification_on_seed_' + str(seed)] = experiment.in_class_results[seed]
 
-                    #Write weights of linear classifier to their own csv.
+                    # Write weights of linear classifier to their own csv.
                     classifier_fieldnames = ['out_dimension', 'bias'] + ['weight_' + str(in_dim) for in_dim in range(experiment.classifier.weight[0].shape[0])]
                     weights_writer = csv.DictWriter(open(self.save_name + '_' + experiment.novel_verb + '_classifier_weights.csv', 'w', newline=''), fieldnames=classifier_fieldnames)
                     weights_writer.writeheader()
@@ -349,32 +349,6 @@ class VerbLearningExperimentParser(HTMLParser):
 class LevinPredictionExperimentParser:
     def __init__(self):
         self.experiments = []
-
-    '''
-    def feed(self, string):
-        lines = string.split('\n')
-        lines.remove('')
-        n = 2
-        alternations = [lines[i * n:(i + 1) * n] for i in range((len(lines) + n - 1) // n )]
-        novel_verb_counter = 1
-        for alternation in alternations:
-            novel_verb_1 = '[V' + str(novel_verb_counter) + '.1]'
-            novel_verb_2 = '[V' + str(novel_verb_counter) + '.2]'
-            train_data_1 = [alternation[0].replace('[V]', novel_verb_1)]
-            train_data_2 = [alternation[1].replace('[V]', novel_verb_2)]
-            in_class_test_data_1 = [alternation[1].replace('[V]', novel_verb_1)]
-            in_class_test_data_2 = [alternation[0].replace('[V]', novel_verb_2)]
-            out_class_test_data_1 = []
-            out_class_test_data_2 = []
-            for index in range(len(lines)):
-                if [alternation[0], lines[index]] not in alternations and [lines[index], alternation[0]] not in alternations and alternation[0] != lines[index]:
-                    out_class_test_data_1.append(lines[index].replace('[V]', novel_verb_1))
-                if [alternation[1], lines[index]] not in alternations and [lines[index], alternation[1]] not in alternations and alternation[1] != lines[index]:
-                    out_class_test_data_2.append(lines[index].replace('[V]', novel_verb_2))
-            self.experiments.append(PredictionExperiment('', [novel_verb_1], novel_verb_1, train_data_1, in_class_test_data_1, out_class_test_data_1))
-            self.experiments.append(PredictionExperiment('', [novel_verb_2], novel_verb_2, train_data_2, in_class_test_data_2, out_class_test_data_2))
-            novel_verb_counter += 1
-    '''
 
     def feed(self, experiment_dict):
         all_alternations = []

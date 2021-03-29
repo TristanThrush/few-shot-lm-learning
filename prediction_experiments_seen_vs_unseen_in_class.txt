@@ -1,0 +1,137 @@
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V29]
+</novel_verb>
+<novel_tokens>
+[V29]
+[N29]
+[N30]
+</novel_tokens>
+<train>
+The [MASK] [V29] the [N29].
+The [MASK] [V29] the [N30].
+</train>
+<test>
+* Bad:The [MASK] [V29] the [N31].
+Good:The [MASK] [V29] the [N29].
+Good:The [MASK] [V29] the [N30].
+</test>
+</prediction>
+
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V30]
+</novel_verb>
+<novel_tokens>
+[V30]
+[N29]
+[N31]
+</novel_tokens>
+<train>
+The [MASK] [V30] the [N29].
+The [MASK] [V30] the [N31].
+</train>
+<test>
+* Bad:The [MASK] [V30] the [N30].
+Good:The [MASK] [V30] the [N31].
+Good:The [MASK] [V30] the [N29].
+</test>
+</prediction>
+
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V31]
+</novel_verb>
+<novel_tokens>
+[V31]
+[N30]
+[N31]
+</novel_tokens>
+<train>
+The [MASK] [V31] the [N30].
+The [MASK] [V31] the [N31].
+</train>
+<test>
+* Bad:The [MASK] [V31] the [N29].
+Good:The [MASK] [V31] the [N31].
+Good:The [MASK] [V31] the [N30].
+</test>
+</prediction>
+
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V32]
+</novel_verb>
+<novel_tokens>
+[V32]
+[N32]
+[N33]
+</novel_tokens>
+<train>
+The [MASK] [V32] the [N32].
+The [MASK] [V32] the [N33].
+</train>
+<test>
+* Bad:The [MASK] [V32] the [N34].
+Good:The [MASK] [V32] the [N33].
+Good:The [MASK] [V32] the [N32].
+</test>
+</prediction>
+
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V33]
+</novel_verb>
+<novel_tokens>
+[V33]
+[N32]
+[N34]
+</novel_tokens>
+<train>
+The [MASK] [V33] the [N32].
+The [MASK] [V33] the [N34].
+</train>
+<test>
+* Bad:The [MASK] [V33] the [N33].
+Good:The [MASK] [V33] the [N34].
+Good:The [MASK] [V33] the [N32].
+</test>
+</prediction>
+
+<prediction>
+<info>
+Verb clusters test.
+</info>
+<novel_verb>
+[V34]
+</novel_verb>
+<novel_tokens>
+[V34]
+[N33]
+[N34]
+</novel_tokens>
+<train>
+The [MASK] [V34] the [N33].
+The [MASK] [V34] the [N34].
+</train>
+<test>
+* Bad:The [MASK] [V34] the [N32].
+Good:The [MASK] [V34] the [N34].
+Good:The [MASK] [V34] the [N33].
+</test>
+</prediction>
