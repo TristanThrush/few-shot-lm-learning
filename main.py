@@ -3,10 +3,10 @@ from utils import VerbLearningExperimentParser, BertExperiments,\
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--use_levin_prediction_parser', type=bool)
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--use_levin_prediction_parser', action='store_true')
+parser.add_argument('--epochs', type=int, default=1,
                     help='number of training epochs')
-parser.add_argument('--seeds', type=int, default=20,
+parser.add_argument('--seeds', type=int, default=1,
                     help='number of random seeds')
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
@@ -21,11 +21,10 @@ args = parser.parse_args()
 
 if args.use_levin_prediction_parser:
     experiment_parser = LevinPredictionExperimentParser()
-    unparsed = eval(open(args.data).read())
 else:
     experiment_parser = VerbLearningExperimentParser()
-    unparsed = open(args.data).read()
 
+unparsed = open(args.data).read()
 experiment_parser.feed(unparsed)
 
 
