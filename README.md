@@ -8,6 +8,10 @@ Experiments:
 
 These will take a while unless you have a GPU.
 
+The code produces a png with a poorly formatted graph for each experiment. Blue-colored results
+represent the correct judgement with a significant p-value. Red-colored results
+represent the incorrect judgement with a significant p-value.
+
 3 Selectional Preferences:
 
 `python main.py --save_name='prediction' --data='prediction_experiments.txt'`
