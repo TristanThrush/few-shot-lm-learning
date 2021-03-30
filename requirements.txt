@@ -1,9 +1,5 @@
-html
 argparse
 transformers
 torch
 matplotlib
-random
 scipy
-csv
-pickle

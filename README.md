@@ -1,4 +1,4 @@
-This repo contains code for the paper "Investigating Novel Verb Learning in BERT: Selectional Preference Classes and Alternation-Based Syntactic Generalization", by Tristan Thrush, Ethan Wilcox, and Roger Levy.
+This repo contains python3 code for the paper "Investigating Novel Verb Learning in BERT: Selectional Preference Classes and Alternation-Based Syntactic Generalization", by Tristan Thrush, Ethan Wilcox, and Roger Levy.
 
 Setup:
 
@@ -16,7 +16,7 @@ These will take a while unless you have a GPU.
 
 4.1 Psycholinguistic Assessment Results
 
-`python main.py --save_name='levin_prediction_revised2' --data='levin_prediction_revised.txt'`
+`python main.py --save_name='levin_prediction_revised' --data='levin_prediction_revised.txt'`
 
 4.2 Classificaiton Assessment Results
 

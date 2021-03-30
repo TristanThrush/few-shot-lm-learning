@@ -70,7 +70,7 @@ class BERT(BidirectionalTransformer):
             tokenized_input['attention_mask']).to(device)
         loss = self.model(
             masked_input_ids,
-            attention_mask=attention_mask, masked_lm_labels=input_ids)[0]
+            attention_mask=attention_mask, labels=input_ids)[0]
         return loss
 
     def get_embedding(self, word):
