@@ -1,4 +1,4 @@
-This repo contains python3 code for the paper "Investigating Novel Verb Learning in BERT: Selectional Preference Classes and Alternation-Based Syntactic Generalization", by Tristan Thrush, Ethan Wilcox, and Roger Levy.
+This repo contains python3 code for the paper [Investigating Novel Verb Learning in BERT: Selectional Preference Classes and Alternation-Based Syntactic Generalization](https://www.aclweb.org/anthology/2020.blackboxnlp-1.25.pdf), by Tristan Thrush, Ethan Wilcox, and Roger Levy.
 
 Setup:
 
