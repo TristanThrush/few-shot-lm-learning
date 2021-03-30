@@ -4,9 +4,9 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--use_levin_prediction_parser', action='store_true')
-parser.add_argument('--epochs', type=int, default=1,
+parser.add_argument('--epochs', type=int, default=10,
                     help='number of training epochs')
-parser.add_argument('--seeds', type=int, default=1,
+parser.add_argument('--seeds', type=int, default=200,
                     help='number of random seeds')
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
