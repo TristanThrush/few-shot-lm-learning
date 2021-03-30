@@ -2,7 +2,7 @@ from html.parser import HTMLParser
 from models import BERT
 import matplotlib.pyplot as plt
 import random
-import scipy
+from scipy import stats
 import torch
 import csv
 import pickle
@@ -45,7 +45,7 @@ class BertExperiments:
     def significance_test_on_results(self):
         self.experiments = pickle.load(open(self.save_name + '.pkl', 'rb'))
         for experiment in self.experiments:
-            p_value = scipy.stats.wilcoxon(experiment.in_class_results,
+            p_value = stats.wilcoxon(experiment.in_class_results,
                 experiment.out_class_results)[1]
             in_class_sum = sum(experiment.in_class_results)
             out_class_sum = sum(experiment.out_class_results)
@@ -99,7 +99,7 @@ class BertExperiments:
                     for seed in range(seeds):
                         csv_dict['linear_classification_on_seed_' + str(seed)] = experiment.in_class_results[seed]
 
-                    #Write weights of linear classifier to their own csv.
+                    # Write weights of linear classifier to their own csv.
                     classifier_fieldnames = ['out_dimension', 'bias'] + ['weight_' + str(in_dim) for in_dim in range(experiment.classifier.weight[0].shape[0])]
                     weights_writer = csv.DictWriter(open(self.save_name + '_' + experiment.novel_verb + '_classifier_weights.csv', 'w', newline=''), fieldnames=classifier_fieldnames)
                     weights_writer.writeheader()
@@ -146,7 +146,7 @@ class BertExperiments:
                     x += experiment.in_class_results + experiment.out_class_results
                     colors += ['skyblue']*len(experiment.in_class_results) + [
                         'salmon']*len(experiment.out_class_results)
-                    p_value = round(scipy.stats.wilcoxon(
+                    p_value = round(stats.wilcoxon(
                         experiment.in_class_results,
                         experiment.out_class_results)[1], 2)
                     in_class_mean = sum(experiment.in_class_results)/len(
@@ -177,7 +177,7 @@ class BertExperiments:
                 plt.scatter(x, y, c=colors, alpha=0.5, s=[0.5]*len(x))
                 plt.yticks([])
                 axes = plt.gca()
-                axes.set_ylim([-1,300])
+                axes.set_ylim([-1,55])
                 left, right = plt.xlim()
                 plt.axes().set_aspect(0.05*abs(left-right))
                 plt.savefig(self.save_name + str(plot_number) + '.png',
@@ -350,7 +350,6 @@ class LevinPredictionExperimentParser:
     def __init__(self):
         self.experiments = []
 
-    '''
     def feed(self, string):
         lines = string.split('\n')
         lines.remove('')
@@ -373,39 +372,4 @@ class LevinPredictionExperimentParser:
                     out_class_test_data_2.append(lines[index].replace('[V]', novel_verb_2))
             self.experiments.append(PredictionExperiment('', [novel_verb_1], novel_verb_1, train_data_1, in_class_test_data_1, out_class_test_data_1))
             self.experiments.append(PredictionExperiment('', [novel_verb_2], novel_verb_2, train_data_2, in_class_test_data_2, out_class_test_data_2))
-            novel_verb_counter += 1
-    '''
-
-    def feed(self, experiment_dict):
-        all_alternations = []
-        for value in experiment_dict.values():
-            all_alternations += value
-        novel_verb_counter = 1
-        for info, alternations in experiment_dict.items():
-            index = 0
-            for frame1, frame2 in alternations:
-                novel_verb_1 = '[V' + str(novel_verb_counter) + '.1.' + str(index) + ']'
-                novel_verb_2 = '[V' + str(novel_verb_counter) + '.2.' + str(index) + ']'
-                train_data_1 = [frame1.replace('[V]', novel_verb_1)]
-                train_data_2 = [frame2.replace('[V]', novel_verb_2)]
-                in_class_test_data_1 = [frame2.replace('[V]', novel_verb_1)]
-                in_class_test_data_2 = [frame1.replace('[V]', novel_verb_2)]
-                out_class_test_data_1 = []
-                out_class_test_data_2 = []
-                for frame1sub, frame2sub in all_alternations:
-                    if frame1sub != frame1:
-                        if (frame1, frame1sub) not in all_alternations and (frame1sub, frame1) not in all_alternations:
-                            out_class_test_data_1.append(frame1sub.replace('[V]', novel_verb_1))
-                    if frame2sub != frame1:
-                        if (frame1, frame2sub) not in all_alternations and (frame2sub, frame1) not in all_alternations:
-                            out_class_test_data_1.append(frame2sub.replace('[V]', novel_verb_1))
-                    if frame1sub != frame2:
-                        if (frame2, frame1sub) not in all_alternations and (frame1sub, frame2) not in all_alternations:
-                            out_class_test_data_2.append(frame1sub.replace('[V]', novel_verb_2))
-                    if frame2sub != frame2:
-                        if (frame2, frame2sub) not in all_alternations and (frame2sub, frame2) not in all_alternations:
-                            out_class_test_data_2.append(frame2sub.replace('[V]', novel_verb_2))
-                index += 1
-                self.experiments.append(PredictionExperiment(info, [novel_verb_1], novel_verb_1, train_data_1, in_class_test_data_1, out_class_test_data_1))
-                self.experiments.append(PredictionExperiment(info, [novel_verb_2], novel_verb_2, train_data_2, in_class_test_data_2, out_class_test_data_2))
             novel_verb_counter += 1
