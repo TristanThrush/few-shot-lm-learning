@@ -23,6 +23,10 @@ generated csv files for each experiment.
 
 `python main.py --save_name='prediction_seen_vs_unseen_in_class' --data='prediction_experiments_seen_vs_unseen_in_class.txt'`
 
+(unseen out-class vs seen in-class)
+
+`python main.py --save_name='prediction_seen_vs_unseen_out_class' --data='prediction_experiments_seen_vs_unseen_out_class.txt'`
+
 **4.1 Psycholinguistic Levin Alternations Assessment**
 
 `python main.py --use_levin_prediction_parser --save_name='levin_prediction' --data='levin_prediction_experiments.txt'`
